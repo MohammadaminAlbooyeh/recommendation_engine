@@ -4,3 +4,5 @@ sqlalchemy==2.0.23
 pydantic==2.5.0
 pydantic-settings==2.1.0
 nicegui==1.4.10
+pytest==7.4.3
+httpx==0.25.2

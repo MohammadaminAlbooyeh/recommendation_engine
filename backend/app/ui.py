@@ -34,6 +34,37 @@ def init(fastapi_app):
                                 ui.button(icon='edit', on_click=lambda n=note: start_edit(n)).props('flat round color=indigo').classes('hover:bg-indigo-50')
                                 ui.button(icon='delete', on_click=lambda n=note: remove_note(n.id)).props('flat round color=pink').classes('hover:bg-pink-50')
 
+        def filter_notes(search_term):
+            """Filter notes based on search term"""
+            notes_container.clear()
+            notes = note_service.get_notes(db)
+            
+            if search_term:
+                search_lower = search_term.lower()
+                filtered_notes = [n for n in notes if search_lower in n.title.lower() or search_lower in n.content.lower()]
+            else:
+                filtered_notes = notes
+            
+            if not filtered_notes:
+                with notes_container:
+                    ui.label('No matching notes found!').classes('text-gray-500 text-center w-full py-10')
+                return
+            
+            for note in filtered_notes:
+                with notes_container:
+                    with ui.card().classes('w-full p-0 overflow-hidden bg-white hover:shadow-2xl transition-all duration-300 rounded-2xl border-l-8 border-indigo-500 shadow-sm group'):
+                        with ui.row().classes('w-full p-6 items-start'):
+                            with ui.column().classes('flex-1'):
+                                ui.label(note.title).classes('text-xl font-bold text-slate-800 mb-1 group-hover:text-indigo-600 transition-colors')
+                                ui.label(note.content).classes('text-slate-600 leading-relaxed whitespace-pre-wrap')
+                                with ui.row().classes('items-center gap-2 mt-4 text-slate-400'):
+                                    ui.icon('schedule', size='14px')
+                                    ui.label(f'Created: {note.created_at.strftime("%b %d, %H:%M")}').classes('text-xs font-semibold uppercase tracking-wider')
+                            
+                            with ui.column().classes('items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity'):
+                                ui.button(icon='edit', on_click=lambda n=note: start_edit(n)).props('flat round color=indigo').classes('hover:bg-indigo-50')
+                                ui.button(icon='delete', on_click=lambda n=note: remove_note(n.id)).props('flat round color=pink').classes('hover:bg-pink-50')
+
         def start_edit(note):
             nonlocal editing_id
             editing_id = note.id
@@ -106,8 +137,9 @@ def init(fastapi_app):
                         ui.label('Your Collection').classes('text-3xl font-black text-slate-800 tracking-tight')
                         ui.label('Manage your thoughts and ideas').classes('text-slate-500 font-medium')
                     
-                    # Search placeholder (could be functional later)
-                    ui.input(placeholder='Search notes...').props('rounded outlined dense').classes('w-64 bg-white').on('update:model-value', lambda e: ui.notify(f'Searching for: {e.value}') if e.value else None)
+                    # Search functionality
+                    search_input = ui.input(placeholder='Search notes...').props('rounded outlined dense').classes('w-64 bg-white')
+                    search_input.on('update:model-value', lambda e: filter_notes(e.value))
                 
                 notes_container = ui.column().classes('w-full gap-6')
                 refresh_notes()
