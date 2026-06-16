@@ -1,99 +1,84 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { Routes, Route } from 'react-router-dom';
 import './App.css';
+import './styles/index.css';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+import { StoreProvider } from './store/store';
+
+import Header from './components/Header';
+import Sidebar from './components/Sidebar';
+
+import HomePage from './pages/HomePage';
+import ItemsPage from './pages/ItemsPage';
+import ItemDetailPage from './pages/ItemDetailPage';
+import RecommendationsPage from './pages/RecommendationsPage';
+import DashboardPage from './pages/DashboardPage';
+import SearchPage from './pages/SearchPage';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
+import ComparisonPage from './pages/ComparisonPage';
 
 function App() {
-  const [items, setItems] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
-  const [userId, setUserId] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [filters, setFilters] = useState({
+    genres: [],
+    ratingRange: [1, 5],
+    searchQuery: '',
+  });
 
   useEffect(() => {
-    fetchItems();
+    const handleResize = () => {
+      if (window.innerWidth < 768) setSidebarOpen(false);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const fetchItems = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/items`);
-      setItems(response.data);
-    } catch (error) {
-      console.error("Error fetching items:", error);
-    }
-  };
-
-  const fetchRecommendations = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`${API_BASE_URL}/recommendations/${userId}`);
-      setRecommendations(response.data);
-    } catch (error) {
-      console.error("Error fetching recommendations:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRate = async (itemId, rating) => {
-    try {
-      await axios.post(`${API_BASE_URL}/ratings`, {
-        user_id: userId,
-        item_id: itemId,
-        rating: rating
-      });
-      alert("Rating submitted!");
-    } catch (error) {
-      console.error("Error submitting rating:", error);
-    }
-  };
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Recommendation Engine</h1>
-        <div className="user-selector">
-          <label>User ID: </label>
-          <input 
-            type="number" 
-            value={userId} 
-            onChange={(e) => setUserId(parseInt(e.target.value))} 
+    <StoreProvider>
+      <div className="App" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        backgroundColor: 'var(--bg)',
+      }}>
+        <Header />
+
+        <div style={{
+          display: 'flex',
+          flex: 1,
+          position: 'relative',
+        }}>
+          <Sidebar
+            filters={filters}
+            onFilterChange={setFilters}
+            collapsed={!sidebarOpen}
+            onToggle={() => setSidebarOpen(!sidebarOpen)}
           />
-          <button onClick={fetchRecommendations}>Get Recommendations</button>
+
+          <main style={{
+            flex: 1,
+            padding: 'var(--spacing-lg)',
+            maxWidth: 1200,
+            margin: '0 auto',
+            width: '100%',
+          }}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/items" element={<ItemsPage />} />
+              <Route path="/items/:id" element={<ItemDetailPage />} />
+              <Route path="/recommendations" element={<RecommendationsPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/compare" element={<ComparisonPage />} />
+            </Routes>
+          </main>
         </div>
-      </header>
-
-      <main>
-        <section className="recommendations">
-          <h2>Your Recommendations</h2>
-          {loading ? <p>Loading...</p> : (
-            <ul>
-              {recommendations.map(item => (
-                <li key={item.id}>{item.title} ({item.genre})</li>
-              ))}
-              {recommendations.length === 0 && !loading && <p>No recommendations yet. Rate some movies!</p>}
-            </ul>
-          )}
-        </section>
-
-        <section className="all-items">
-          <h2>All Movies</h2>
-          <div className="item-grid">
-            {items.map(item => (
-              <div key={item.id} className="item-card">
-                <h3>{item.title}</h3>
-                <p>{item.genre}</p>
-                <div className="rating-buttons">
-                  {[1, 2, 3, 4, 5].map(r => (
-                    <button key={r} onClick={() => handleRate(item.id, r)}>{r}★</button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </main>
-    </div>
+      </div>
+    </StoreProvider>
   );
 }
 
