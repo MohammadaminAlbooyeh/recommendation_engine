@@ -11,7 +11,7 @@ def log_interaction(
     db_interaction = Interaction(
         user_id=user_id, item_id=item_id,
         event_type=event_type, value=value,
-        session_id=session_id, timestamp=datetime.datetime.utcnow()
+        session_id=session_id, timestamp=datetime.datetime.now(datetime.timezone.utc)
     )
     db.add(db_interaction)
     db.commit()
@@ -26,7 +26,7 @@ def get_user_interactions(db: Session, user_id: int, limit: int = 50) -> List[In
 
 
 def get_recent_interactions(db: Session, minutes: int = 60) -> List[Interaction]:
-    cutoff = datetime.datetime.utcnow() - datetime.timedelta(minutes=minutes)
+    cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=minutes)
     return db.query(Interaction).filter(Interaction.timestamp >= cutoff).all()
 
 

@@ -9,7 +9,6 @@ import SuccessMessage from '../components/SuccessMessage';
 export default function ItemDetailPage() {
   const { id } = useParams();
   const { items, refreshItems } = useItems();
-  const { state } = useStore();
   const item = items.find((i) => i.id === parseInt(id));
   const [notification, setNotification] = useState(null);
 

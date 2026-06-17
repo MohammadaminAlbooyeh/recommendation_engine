@@ -14,7 +14,7 @@ def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(database.g
 
 @router.post("/ratings", response_model=schemas.Rating)
 def create_rating(rating: schemas.RatingCreate, db: Session = Depends(database.get_db)):
-    db_rating = user.Rating(**rating.dict())
+    db_rating = user.Rating(**rating.model_dump())
     db.add(db_rating)
     db.commit()
     db.refresh(db_rating)
