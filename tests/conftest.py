@@ -1,4 +1,6 @@
 import pytest
+import tempfile
+import os
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -6,18 +8,24 @@ from sqlalchemy.orm import sessionmaker
 from backend.api import routes
 from backend.models import database, user
 
+
 @pytest.fixture
 def test_db():
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    db_fd, db_path = tempfile.mkstemp(suffix=".db")
+    engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     database.Base.metadata.create_all(bind=engine)
     TestSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    return TestSession
+    yield TestSession
+    os.close(db_fd)
+    os.unlink(db_path)
+
 
 @pytest.fixture
 def test_session(test_db):
     session = test_db()
     yield session
     session.close()
+
 
 @pytest.fixture
 def sample_items(test_session):
@@ -29,6 +37,7 @@ def sample_items(test_session):
     test_session.commit()
     return items
 
+
 @pytest.fixture
 def sample_users(test_session):
     users = []
@@ -38,6 +47,7 @@ def sample_users(test_session):
         users.append(u)
     test_session.commit()
     return users
+
 
 @pytest.fixture
 def sample_ratings(test_session, sample_users, sample_items):
@@ -49,6 +59,7 @@ def sample_ratings(test_session, sample_users, sample_items):
             ratings.append(r)
     test_session.commit()
     return ratings
+
 
 @pytest.fixture
 def client(test_db):

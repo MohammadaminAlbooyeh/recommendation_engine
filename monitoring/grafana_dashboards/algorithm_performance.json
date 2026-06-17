@@ -1,0 +1,27 @@
+{
+  "title": "Algorithm Performance",
+  "version": 1,
+  "panels": [
+    {
+      "title": "Recommendation Latency by Algorithm",
+      "type": "graph",
+      "targets": [
+        {"expr": "recommendation_latency_seconds", "legendFormat": "{{algorithm}}"}
+      ]
+    },
+    {
+      "title": "Model Training Time",
+      "type": "graph",
+      "targets": [
+        {"expr": "model_training_duration_seconds", "legendFormat": "{{model}}"}
+      ]
+    },
+    {
+      "title": "Recommendation Count Distribution",
+      "type": "heatmap",
+      "targets": [
+        {"expr": "recommendation_count"}
+      ]
+    }
+  ]
+}

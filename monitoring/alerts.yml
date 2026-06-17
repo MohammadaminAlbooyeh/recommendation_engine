@@ -1,0 +1,49 @@
+groups:
+  - name: recommendation_engine_alerts
+    interval: 30s
+
+    rules:
+      - alert: APIHighLatency
+        expr: http_request_duration_seconds{job="recommendation-api"} > 1.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API latency above 1 second"
+          description: "API endpoint {{ $labels.route }} has latency of {{ $value }}s"
+
+      - alert: APIHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API error rate above 5%"
+          description: "API error rate is {{ $value | humanizePercentage }}"
+
+      - alert: DatabaseDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "Database instance {{ $labels.instance }} is unreachable"
+
+      - alert: LowRecommendationCoverage
+        expr: recommendation_coverage < 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low recommendation coverage"
+          description: "Recommendation coverage is {{ $value | humanizePercentage }}"
+
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes{job="recommendation-api"} > 500000000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "API memory usage is {{ $value | humanizeBytes }}"

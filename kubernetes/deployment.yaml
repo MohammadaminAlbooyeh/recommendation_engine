@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommendation-api
+  labels:
+    app: recommendation-engine
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: recommendation-engine
+      tier: api
+  template:
+    metadata:
+      labels:
+        app: recommendation-engine
+        tier: api
+    spec:
+      containers:
+        - name: api
+          image: recommendation-engine-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: recommendation-config
+                  key: database_url
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: recommendation-config
+                  key: redis_url
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: recommendation-config
+                  key: log_level
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommendation-frontend
+  labels:
+    app: recommendation-engine
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: recommendation-engine
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: recommendation-engine
+        tier: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: recommendation-engine-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"

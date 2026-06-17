@@ -1,0 +1,40 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build Docker images
+        run: |
+          docker-compose build
+
+      - name: Push to registry
+        env:
+          REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+          USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo "$PASSWORD" | docker login "$REGISTRY" -u "$USERNAME" --password-stdin
+          docker-compose push
+
+      - name: Deploy to production
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "$SSH_HOST" << 'EOF'
+            cd /app/recommendation_engine
+            git pull
+            docker-compose down
+            docker-compose up -d --build
+          EOF

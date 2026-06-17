@@ -1,0 +1,34 @@
+{
+  "title": "User Engagement",
+  "version": 1,
+  "panels": [
+    {
+      "title": "Active Users",
+      "type": "graph",
+      "targets": [
+        {"expr": "active_users_count", "legendFormat": "Active Users"}
+      ]
+    },
+    {
+      "title": "Ratings Per Day",
+      "type": "bar",
+      "targets": [
+        {"expr": "rate(ratings_total[24h])", "legendFormat": "Ratings/day"}
+      ]
+    },
+    {
+      "title": "Top Genres",
+      "type": "piechart",
+      "targets": [
+        {"expr": "top_genre_ratings", "legendFormat": "{{genre}}"}
+      ]
+    },
+    {
+      "title": "Recommendation Click Rate",
+      "type": "graph",
+      "targets": [
+        {"expr": "rate(recommendation_clicks_total[24h]) / rate(recommendation_impressions_total[24h])", "legendFormat": "CTR"}
+      ]
+    }
+  ]
+}

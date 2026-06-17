@@ -1,0 +1,28 @@
+{
+  "title": "Recommendation Metrics",
+  "version": 1,
+  "panels": [
+    {
+      "title": "Precision@K Over Time",
+      "type": "graph",
+      "targets": [
+        {"expr": "precision_at_k{k=\"10\"}", "legendFormat": "Precision@10"},
+        {"expr": "precision_at_k{k=\"5\"}", "legendFormat": "Precision@5"}
+      ]
+    },
+    {
+      "title": "Recall@K Over Time",
+      "type": "graph",
+      "targets": [
+        {"expr": "recall_at_k{k=\"10\"}", "legendFormat": "Recall@10"}
+      ]
+    },
+    {
+      "title": "Coverage",
+      "type": "stat",
+      "targets": [
+        {"expr": "catalog_coverage"}
+      ]
+    }
+  ]
+}
